@@ -1,0 +1,144 @@
+{
+  "name": "@promptrev/vscode",
+  "displayName": "PromptRev",
+  "description": "Instantly enhance your AI prompts with @rev",
+  "version": "0.1.0",
+  "publisher": "promptrev",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["AI", "Other"],
+  "keywords": ["prompt", "ai", "copilot", "enhancement", "chat"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "promptrev.rev",
+        "name": "rev",
+        "fullName": "PromptRev",
+        "description": "Enhance your prompt before sending it to the AI",
+        "isSticky": false,
+        "commands": [
+          {
+            "name": "fast",
+            "description": "Quick sharpen — rule-based, zero latency, auto-accept"
+          },
+          {
+            "name": "deep",
+            "description": "Exhaustive rewrite — chain-of-thought, edge cases, structured output"
+          },
+          {
+            "name": "architect",
+            "description": "System design framing — trade-offs, scalability, components"
+          },
+          {
+            "name": "critic",
+            "description": "Adversarial review framing — failure modes, assumptions, security"
+          },
+          {
+            "name": "spell",
+            "description": "Grammar and spelling only — no structural changes"
+          },
+          {
+            "name": "spec",
+            "description": "Convert idea to structured spec with acceptance criteria"
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "promptrev.enhanceSelection",
+        "title": "PromptRev: Enhance Selected Text"
+      },
+      {
+        "command": "promptrev.openHistory",
+        "title": "PromptRev: Open History Panel"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "promptrev.enhanceSelection",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "PromptRev",
+      "properties": {
+        "promptrev.acceptMode": {
+          "type": "string",
+          "enum": ["diff", "auto", "preview"],
+          "enumDescriptions": [
+            "Show a diff preview before accepting",
+            "Auto-accept the enhanced prompt",
+            "Show a preview without diff highlighting"
+          ],
+          "default": "diff",
+          "description": "How to present the enhanced prompt"
+        },
+        "promptrev.autoSend": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically send the accepted enhanced prompt to the AI"
+        },
+        "promptrev.keepHistory": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep a history of enhanced prompts"
+        },
+        "promptrev.maxHistory": {
+          "type": "number",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 500,
+          "description": "Maximum number of history entries to keep"
+        },
+        "promptrev.defaultModifier": {
+          "type": "string",
+          "default": "default",
+          "description": "Default modifier to use when none is specified"
+        },
+        "promptrev.domainContext": {
+          "type": "string",
+          "default": "",
+          "description": "Tech stack context injected into every enhancement (e.g. 'React + TypeScript, Node.js, PostgreSQL')"
+        },
+        "promptrev.modifiers": {
+          "type": "object",
+          "default": {},
+          "description": "Custom modifier definitions or overrides for built-in modifiers"
+        }
+      }
+    },
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "promptrev.history",
+          "name": "PromptRev History"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.config.js",
+    "watch": "node esbuild.config.js --watch",
+    "package": "vsce package --no-dependencies",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@promptrev/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.4.0"
+  }
+}
