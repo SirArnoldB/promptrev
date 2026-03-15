@@ -1,0 +1,27 @@
+{
+  "name": "promptrev",
+  "private": true,
+  "version": "0.0.0",
+  "description": "PromptRev — VS Code extension, CLI, and core SDK",
+  "scripts": {
+    "build": "pnpm --filter @promptrev/core build && pnpm --filter @promptrev/vscode build && pnpm --filter promptrev build",
+    "build:core": "pnpm --filter @promptrev/core build",
+    "test": "pnpm -r test",
+    "test:core": "pnpm --filter @promptrev/core test",
+    "lint": "eslint packages/*/src --ext .ts",
+    "format": "prettier --write packages/*/src/**/*.ts",
+    "clean": "pnpm -r exec rm -rf dist"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
