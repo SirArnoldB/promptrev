@@ -1,57 +1,62 @@
 import * as vscode from 'vscode';
 import type { EnhancerOutput } from '@promptrev/core';
 
-// Store the most recent enhancement result so button commands can access it.
-// This is safe because chat interactions are sequential — a user cannot
-// click Accept on a previous result while a new enhancement is in progress.
-let pendingResult: EnhancerOutput | null = null;
+// Keyed by result.timestamp — each enhancement gets a unique ID.
+// Entries are deleted on first use so re-clicking a button has no effect.
+const pendingResults = new Map<number, EnhancerOutput>();
 
-export function setPendingResult(result: EnhancerOutput | null): void {
-  pendingResult = result;
+export function addPendingResult(result: EnhancerOutput): void {
+  pendingResults.set(result.timestamp, result);
+}
+
+function consumeResult(timestamp: number): EnhancerOutput | undefined {
+  const result = pendingResults.get(timestamp);
+  if (result) pendingResults.delete(timestamp);
+  return result;
 }
 
 export function registerCommands(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('promptrev.accept', async (revised?: string) => {
-      const text = revised ?? pendingResult?.revised;
-      if (!text) return;
+    vscode.commands.registerCommand('promptrev.accept', async (timestamp?: number) => {
+      const result = timestamp !== undefined ? consumeResult(timestamp) : undefined;
+      if (!result) {
+        vscode.window.showInformationMessage('PromptRev: This enhancement has already been applied.');
+        return;
+      }
 
-      // Open chat with the revised prompt pre-filled and submitted
       try {
-        await vscode.commands.executeCommand('workbench.action.chat.open', { query: text });
+        await vscode.commands.executeCommand('workbench.action.chat.open', { query: result.revised });
       } catch {
-        // Fallback: copy to clipboard
-        await vscode.env.clipboard.writeText(text);
+        await vscode.env.clipboard.writeText(result.revised);
         vscode.window.showInformationMessage(
           'PromptRev: Revised prompt copied to clipboard — paste in chat to send.'
         );
       }
-      setPendingResult(null);
     }),
 
-    vscode.commands.registerCommand('promptrev.editFirst', async (revised?: string) => {
-      const text = revised ?? pendingResult?.revised;
-      if (!text) return;
+    vscode.commands.registerCommand('promptrev.editFirst', async (timestamp?: number) => {
+      const result = timestamp !== undefined ? consumeResult(timestamp) : undefined;
+      if (!result) {
+        vscode.window.showInformationMessage('PromptRev: This enhancement has already been applied.');
+        return;
+      }
 
-      // Open chat with the revised prompt pre-filled but NOT submitted (partial query)
       try {
         await vscode.commands.executeCommand('workbench.action.chat.open', {
-          query: text,
+          query: result.revised,
           isPartialQuery: true,
         });
       } catch {
-        // Fallback: copy to clipboard
-        await vscode.env.clipboard.writeText(text);
+        await vscode.env.clipboard.writeText(result.revised);
         vscode.window.showInformationMessage(
           'PromptRev: Revised prompt copied to clipboard — paste in chat to edit.'
         );
       }
-      setPendingResult(null);
     }),
 
-    vscode.commands.registerCommand('promptrev.dismiss', () => {
-      setPendingResult(null);
-      // No UI feedback needed — user explicitly dismissed
+    vscode.commands.registerCommand('promptrev.dismiss', (timestamp?: number) => {
+      if (timestamp !== undefined) consumeResult(timestamp);
+      // No UI feedback — user explicitly dismissed
     })
   );
 }

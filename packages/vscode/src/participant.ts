@@ -4,7 +4,7 @@ import type { EnhancerOutput } from '@promptrev/core';
 import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { parseModifierFromCommand } from './utils';
 import { selectModel, handleNoModel } from './model-selector';
-import { setPendingResult } from './commands';
+import { addPendingResult } from './commands';
 
 export function registerParticipant(context: vscode.ExtensionContext): void {
   const participant = vscode.chat.createChatParticipant('promptrev.rev', handler);
@@ -47,6 +47,8 @@ async function handler(
   const controller = new AbortController();
   const cancelListener = token.onCancellationRequested(() => controller.abort());
 
+  stream.progress('Revising prompt...');
+
   try {
     const result = await enhance({
       rawPrompt,
@@ -68,8 +70,8 @@ async function handler(
     // :fast and any modifier with acceptMode:'auto' — skip diff, show result directly (#13)
     if (modifierDef.acceptMode === 'auto') {
       stream.markdown(`**Enhanced prompt:**\n\n\`\`\`\n${result.revised}\n\`\`\``);
-      // Auto-accept: open chat with revised prompt immediately
-      await vscode.commands.executeCommand('promptrev.accept', result.revised);
+      addPendingResult(result);
+      await vscode.commands.executeCommand('promptrev.accept', result.timestamp);
       return;
     }
 
@@ -89,8 +91,8 @@ function renderResult(
   stream: vscode.ChatResponseStream,
   result: EnhancerOutput
 ): void {
-  // Store for button command handlers
-  setPendingResult(result);
+  // Register result by timestamp — consumed on first button click
+  addPendingResult(result);
 
   // Diff view
   stream.markdown(formatDiffMarkdown(result.original, result.revised));
@@ -98,20 +100,20 @@ function renderResult(
   stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
   stream.markdown('\n\n');
 
-  // Action buttons (#13)
+  // Action buttons — pass timestamp as ID, not the text, so re-clicks are no-ops (#13)
   stream.button({
     command: 'promptrev.accept',
     title: '$(check) Accept & Send',
-    arguments: [result.revised],
+    arguments: [result.timestamp],
   });
   stream.button({
     command: 'promptrev.editFirst',
     title: '$(edit) Edit First',
-    arguments: [result.revised],
+    arguments: [result.timestamp],
   });
   stream.button({
     command: 'promptrev.dismiss',
     title: '$(close) Dismiss',
-    arguments: [],
+    arguments: [result.timestamp],
   });
 }
