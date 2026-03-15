@@ -54,6 +54,23 @@ export function registerCommands(context: vscode.ExtensionContext): void {
       }
     }),
 
+    vscode.commands.registerCommand('promptrev.sendOriginal', async (timestamp?: number) => {
+      const result = timestamp !== undefined ? consumeResult(timestamp) : undefined;
+      if (!result) {
+        vscode.window.showInformationMessage('PromptRev: This enhancement has already been applied.');
+        return;
+      }
+
+      try {
+        await vscode.commands.executeCommand('workbench.action.chat.open', { query: result.original });
+      } catch {
+        await vscode.env.clipboard.writeText(result.original);
+        vscode.window.showInformationMessage(
+          'PromptRev: Original prompt copied to clipboard — paste in chat to send.'
+        );
+      }
+    }),
+
     vscode.commands.registerCommand('promptrev.dismiss', (timestamp?: number) => {
       if (timestamp !== undefined) consumeResult(timestamp);
       // No UI feedback — user explicitly dismissed

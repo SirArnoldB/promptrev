@@ -112,6 +112,11 @@ function renderResult(
     arguments: [result.timestamp],
   });
   stream.button({
+    command: 'promptrev.sendOriginal',
+    title: '$(arrow-right) Send Original',
+    arguments: [result.timestamp],
+  });
+  stream.button({
     command: 'promptrev.dismiss',
     title: '$(close) Dismiss',
     arguments: [result.timestamp],

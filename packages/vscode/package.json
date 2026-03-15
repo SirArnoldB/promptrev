@@ -66,6 +66,10 @@
         "title": "PromptRev: Edit Enhancement Before Sending"
       },
       {
+        "command": "promptrev.sendOriginal",
+        "title": "PromptRev: Send Original Prompt"
+      },
+      {
         "command": "promptrev.dismiss",
         "title": "PromptRev: Dismiss Enhancement"
       }

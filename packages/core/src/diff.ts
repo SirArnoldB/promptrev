@@ -35,18 +35,24 @@ export function formatDiffForDisplay(chunks: DiffChunk[]): string {
 }
 
 /**
- * Formats the full diff comparison as a markdown block for chat display.
+ * Formats the diff as a ```diff code block — renders with red/green
+ * highlighting in VS Code and GitHub, identical to git diff output.
+ * Original lines are prefixed with `-`, revised lines with `+`.
  */
 export function formatDiffMarkdown(original: string, revised: string): string {
   if (original.trim() === revised.trim()) {
     return `**No significant changes needed.**\n\n> ${original}`;
   }
 
-  return [
-    '**Original:**',
-    `> ${original}`,
-    '',
-    '**Revised:**',
-    `> ${revised}`,
-  ].join('\n');
+  const originalLines = original
+    .split('\n')
+    .map((l) => `- ${l}`)
+    .join('\n');
+
+  const revisedLines = revised
+    .split('\n')
+    .map((l) => `+ ${l}`)
+    .join('\n');
+
+  return `\`\`\`diff\n${originalLines}\n${revisedLines}\n\`\`\``;
 }

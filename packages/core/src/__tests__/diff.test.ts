@@ -35,9 +35,18 @@ describe('formatDiffMarkdown', () => {
     expect(result).toContain('No significant changes');
   });
 
-  it('includes original and revised sections for different text', () => {
+  it('renders as a diff code block with - and + prefixed lines', () => {
     const result = formatDiffMarkdown('fix bug', 'Fix the bug.');
-    expect(result).toContain('Original');
-    expect(result).toContain('Revised');
+    expect(result).toContain('```diff');
+    expect(result).toContain('- fix bug');
+    expect(result).toContain('+ Fix the bug.');
+  });
+
+  it('handles multi-line prompts', () => {
+    const result = formatDiffMarkdown('line one\nline two', 'Line one.\nLine two.');
+    expect(result).toContain('- line one');
+    expect(result).toContain('- line two');
+    expect(result).toContain('+ Line one.');
+    expect(result).toContain('+ Line two.');
   });
 });
