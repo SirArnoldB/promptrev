@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
-import { enhance, RuleBasedAdapter, formatDiffMarkdown } from '@promptrev/core';
+import { enhance, RuleBasedAdapter, resolveModifier, formatDiffMarkdown } from '@promptrev/core';
+import type { EnhancerOutput } from '@promptrev/core';
 import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { parseModifierFromCommand } from './utils';
+import { selectModel, handleNoModel } from './model-selector';
+import { setPendingResult } from './commands';
 
 export function registerParticipant(context: vscode.ExtensionContext): void {
   const participant = vscode.chat.createChatParticipant('promptrev.rev', handler);
@@ -27,18 +30,22 @@ async function handler(
   const domainContext = config.get<string>('domainContext') || undefined;
   const userModifiers = config.get<Record<string, object>>('modifiers') || {};
 
-  const models = await vscode.lm.selectChatModels({ vendor: 'copilot' });
-  const adapter =
-    models.length > 0 ? new VSCodeModelAdapter(models[0], token) : new RuleBasedAdapter();
+  // Resolve modifier definition to check acceptMode up front
+  const modifierDef = resolveModifier(modifier, userModifiers);
 
-  if (models.length === 0 && modifier !== 'fast') {
-    stream.markdown(
-      '> **PromptRev:** No language model available. Using rule-based enhancement. ' +
-        'For better results, activate GitHub Copilot or configure an API key in settings.\n\n'
-    );
+  // Select model — with all-vendor fallback (#15)
+  const model = await selectModel();
+
+  if (!model) {
+    const shouldAbort = await handleNoModel(modifier); // (#16)
+    if (shouldAbort) return;
   }
 
-  const signal = new AbortController().signal;
+  const adapter = model ? new VSCodeModelAdapter(model, token) : new RuleBasedAdapter();
+
+  // Wire VS Code cancellation token to AbortSignal (#12)
+  const controller = new AbortController();
+  const cancelListener = token.onCancellationRequested(() => controller.abort());
 
   try {
     const result = await enhance({
@@ -47,7 +54,7 @@ async function handler(
       domainContext,
       modelAdapter: adapter,
       userModifiers,
-      signal,
+      signal: controller.signal,
     });
 
     if (result.skipped) {
@@ -58,12 +65,53 @@ async function handler(
       return;
     }
 
-    stream.markdown(formatDiffMarkdown(result.original, result.revised));
-    stream.markdown('\n\n---\n');
-    stream.markdown('**Revised prompt (copy and send):**\n\n');
-    stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
+    // :fast and any modifier with acceptMode:'auto' — skip diff, show result directly (#13)
+    if (modifierDef.acceptMode === 'auto') {
+      stream.markdown(`**Enhanced prompt:**\n\n\`\`\`\n${result.revised}\n\`\`\``);
+      // Auto-accept: open chat with revised prompt immediately
+      await vscode.commands.executeCommand('promptrev.accept', result.revised);
+      return;
+    }
+
+    // Standard diff flow — show original vs revised, then action buttons (#13)
+    renderResult(stream, result);
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') return;
-    stream.markdown(`> **PromptRev error:** ${err instanceof Error ? err.message : 'Unknown error'}`);
+    stream.markdown(
+      `> **PromptRev error:** ${err instanceof Error ? err.message : 'Unknown error'}`
+    );
+  } finally {
+    cancelListener.dispose();
   }
+}
+
+function renderResult(
+  stream: vscode.ChatResponseStream,
+  result: EnhancerOutput
+): void {
+  // Store for button command handlers
+  setPendingResult(result);
+
+  // Diff view
+  stream.markdown(formatDiffMarkdown(result.original, result.revised));
+  stream.markdown('\n\n---\n\n**Revised prompt:**\n\n');
+  stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
+  stream.markdown('\n\n');
+
+  // Action buttons (#13)
+  stream.button({
+    command: 'promptrev.accept',
+    title: '$(check) Accept & Send',
+    arguments: [result.revised],
+  });
+  stream.button({
+    command: 'promptrev.editFirst',
+    title: '$(edit) Edit First',
+    arguments: [result.revised],
+  });
+  stream.button({
+    command: 'promptrev.dismiss',
+    title: '$(close) Dismiss',
+    arguments: [],
+  });
 }

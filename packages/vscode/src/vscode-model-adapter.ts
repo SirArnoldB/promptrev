@@ -10,6 +10,8 @@ export class VSCodeModelAdapter implements ModelAdapter {
   async complete(
     systemPrompt: string,
     userMessage: string,
+    // AbortSignal is not used here — VS Code cancellation is handled via
+    // the CancellationToken passed at construction time.
     _signal?: AbortSignal
   ): Promise<string> {
     const messages = [

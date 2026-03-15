@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { enhance, RuleBasedAdapter, formatDiffMarkdown } from '@promptrev/core';
+import { enhance, RuleBasedAdapter } from '@promptrev/core';
 import { VSCodeModelAdapter } from './vscode-model-adapter';
+import { selectModel } from './model-selector';
 
 export function registerKeybinding(context: vscode.ExtensionContext): void {
   const cmd = vscode.commands.registerCommand('promptrev.enhanceSelection', async () => {
@@ -19,12 +20,11 @@ export function registerKeybinding(context: vscode.ExtensionContext): void {
     const domainContext = config.get<string>('domainContext') || undefined;
     const userModifiers = config.get<Record<string, object>>('modifiers') || {};
 
-    const token = new vscode.CancellationTokenSource();
-    const models = await vscode.lm.selectChatModels({ vendor: 'copilot' });
-    const adapter =
-      models.length > 0
-        ? new VSCodeModelAdapter(models[0], token.token)
-        : new RuleBasedAdapter();
+    const tokenSource = new vscode.CancellationTokenSource();
+    const model = await selectModel();
+    const adapter = model
+      ? new VSCodeModelAdapter(model, tokenSource.token)
+      : new RuleBasedAdapter();
 
     try {
       const result = await enhance({
@@ -41,16 +41,14 @@ export function registerKeybinding(context: vscode.ExtensionContext): void {
       }
 
       const choice = await vscode.window.showInformationMessage(
-        `PromptRev: Prompt enhanced.\n\n${formatDiffMarkdown(result.original, result.revised)}`,
+        `PromptRev: Prompt enhanced. Replace selection or copy to clipboard?`,
         'Replace Selection',
         'Copy to Clipboard',
         'Dismiss'
       );
 
       if (choice === 'Replace Selection' && !selection.isEmpty) {
-        await editor.edit((editBuilder) => {
-          editBuilder.replace(selection, result.revised);
-        });
+        await editor.edit((b) => b.replace(selection, result.revised));
       } else if (choice === 'Copy to Clipboard') {
         await vscode.env.clipboard.writeText(result.revised);
         vscode.window.showInformationMessage('PromptRev: Enhanced prompt copied to clipboard.');
@@ -60,7 +58,7 @@ export function registerKeybinding(context: vscode.ExtensionContext): void {
         `PromptRev: Enhancement failed — ${err instanceof Error ? err.message : 'Unknown error'}`
       );
     } finally {
-      token.dispose();
+      tokenSource.dispose();
     }
   });
 
