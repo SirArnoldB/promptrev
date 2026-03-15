@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/vscode/dist/**/*.js"
+      ],
+      "preLaunchTask": "build-vscode",
+      "sourceMaps": true
+    },
+    {
+      "name": "Launch Extension (watch)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/vscode/dist/**/*.js"
+      ],
+      "preLaunchTask": "watch-vscode",
+      "sourceMaps": true
+    }
+  ]
+}
