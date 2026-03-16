@@ -1,0 +1,109 @@
+name: Publish
+
+on:
+  # Run once daily at 02:00 UTC
+  schedule:
+    - cron: '0 2 * * *'
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  # ── npm (promptrev CLI) ──────────────────────────────────────────────────────
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter @promptrev/core build
+
+      - name: Build CLI
+        run: pnpm --filter './packages/cli' build
+
+      - name: Check version and publish
+        run: |
+          LOCAL=$(node -p "require('./packages/cli/package.json').version")
+          PUBLISHED=$(npm show promptrev version 2>/dev/null || echo "none")
+
+          echo "Local version:     $LOCAL"
+          echo "Published version: $PUBLISHED"
+
+          if [ "$LOCAL" = "$PUBLISHED" ]; then
+            echo "promptrev@$LOCAL is already published — skipping."
+          else
+            echo "Publishing promptrev@$LOCAL..."
+            cd packages/cli && npm publish
+            echo "✅ Published promptrev@$LOCAL to npm"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ── VS Code Marketplace ──────────────────────────────────────────────────────
+  publish-vscode:
+    name: Publish to VS Code Marketplace
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter @promptrev/core build
+
+      - name: Build extension
+        run: pnpm --filter './packages/vscode' build
+
+      - name: Check version and publish
+        run: |
+          LOCAL=$(node -p "require('./packages/vscode/package.json').version")
+
+          # Fetch the currently published version from the marketplace
+          PUBLISHED=$(npx @vscode/vsce show promptrev.promptrev --json 2>/dev/null \
+            | node -e "
+                let d = '';
+                process.stdin.on('data', c => d += c);
+                process.stdin.on('end', () => {
+                  try {
+                    const p = JSON.parse(d);
+                    console.log(p.versions?.[0]?.version ?? 'none');
+                  } catch { console.log('none'); }
+                });
+              " \
+            || echo "none")
+
+          echo "Local version:     $LOCAL"
+          echo "Published version: $PUBLISHED"
+
+          if [ "$LOCAL" = "$PUBLISHED" ]; then
+            echo "PromptRev@$LOCAL is already published — skipping."
+          else
+            echo "Publishing PromptRev@$LOCAL to VS Code Marketplace..."
+            cd packages/vscode && npx @vscode/vsce publish --pat "$VSCE_PAT" --no-dependencies
+            echo "✅ Published PromptRev@$LOCAL to VS Code Marketplace"
+          fi
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
