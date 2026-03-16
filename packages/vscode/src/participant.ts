@@ -5,9 +5,13 @@ import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { parseModifierFromCommand } from './utils';
 import { selectModel, handleNoModel } from './model-selector';
 import { addPendingResult } from './commands';
+import { getHistoryManager } from './history-manager';
+import type { HistoryPanelProvider } from './history-panel';
 
-export function registerParticipant(context: vscode.ExtensionContext): void {
-  const participant = vscode.chat.createChatParticipant('promptrev.rev', handler);
+export function registerParticipant(context: vscode.ExtensionContext, historyPanel: HistoryPanelProvider): void {
+  const participant = vscode.chat.createChatParticipant('promptrev.rev', (req, ctx, stream, token) =>
+    handler(req, ctx, stream, token, historyPanel)
+  );
   participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icons', 'rev.png');
   context.subscriptions.push(participant);
 }
@@ -16,7 +20,8 @@ async function handler(
   request: vscode.ChatRequest,
   _context: vscode.ChatContext,
   stream: vscode.ChatResponseStream,
-  token: vscode.CancellationToken
+  token: vscode.CancellationToken,
+  historyPanel: HistoryPanelProvider
 ): Promise<void> {
   const modifier = parseModifierFromCommand(request.command);
   const rawPrompt = request.prompt.trim();
@@ -66,6 +71,15 @@ async function handler(
       );
       return;
     }
+
+    // Record to history and refresh the panel
+    getHistoryManager().add({
+      original: result.original,
+      revised: result.revised,
+      modifier: result.modifier as string,
+      accepted: false,
+    });
+    historyPanel.refresh();
 
     // :fast and any modifier with acceptMode:'auto' — skip diff, show result directly (#13)
     if (modifierDef.acceptMode === 'auto') {

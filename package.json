@@ -6,7 +6,10 @@
   "scripts": {
     "build": "pnpm --filter @promptrev/core build && pnpm --filter @promptrev/vscode build && pnpm --filter promptrev build",
     "build:core": "pnpm --filter @promptrev/core build",
+    "build:cli": "pnpm --filter promptrev build",
+    "dev:cli": "pnpm --filter @promptrev/core build && pnpm --filter promptrev build",
     "test": "pnpm -r test",
+    "test:cli": "pnpm --filter promptrev test",
     "test:core": "pnpm --filter @promptrev/core test",
     "lint": "eslint packages/*/src --ext .ts",
     "format": "prettier --write packages/*/src/**/*.ts",
