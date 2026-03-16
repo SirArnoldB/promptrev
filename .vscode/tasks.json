@@ -15,7 +15,7 @@
     {
       "label": "build-vscode",
       "type": "shell",
-      "command": "pnpm --filter promptrev-vscode build",
+      "command": "pnpm --filter './packages/vscode' build",
       "group": "build",
       "dependsOn": "build-core",
       "presentation": {
@@ -27,7 +27,7 @@
     {
       "label": "watch-vscode",
       "type": "shell",
-      "command": "pnpm --filter promptrev-vscode watch",
+      "command": "pnpm --filter './packages/vscode' watch",
       "group": "build",
       "dependsOn": "build-core",
       "isBackground": true,
