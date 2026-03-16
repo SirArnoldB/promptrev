@@ -2,8 +2,10 @@ import * as vscode from 'vscode';
 import { enhance, RuleBasedAdapter } from '@promptrev/core';
 import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { selectModel } from './model-selector';
+import { getHistoryManager } from './history-manager';
+import type { HistoryPanelProvider } from './history-panel';
 
-export function registerKeybinding(context: vscode.ExtensionContext): void {
+export function registerKeybinding(context: vscode.ExtensionContext, historyPanel: HistoryPanelProvider): void {
   const cmd = vscode.commands.registerCommand('promptrev.enhanceSelection', async () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
@@ -39,6 +41,14 @@ export function registerKeybinding(context: vscode.ExtensionContext): void {
         vscode.window.showInformationMessage('PromptRev: No significant changes needed.');
         return;
       }
+
+      getHistoryManager().add({
+        original: result.original,
+        revised: result.revised,
+        modifier: result.modifier as string,
+        accepted: false,
+      });
+      historyPanel.refresh();
 
       const choice = await vscode.window.showInformationMessage(
         `PromptRev: Prompt enhanced. Replace selection or copy to clipboard?`,
