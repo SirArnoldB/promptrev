@@ -1,18 +1,10 @@
 name: Publish
 
 on:
-  # Auto-publish on merge to main when package versions change
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/cli/package.json'
-      - 'packages/vscode/package.json'
-      - 'packages/core/package.json'
-  # Nightly safety net — catches any missed version bumps
+  # Run once daily at 02:00 UTC
   schedule:
     - cron: '0 2 * * *'
-  # Keep manual trigger for emergency re-runs
+  # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
 
 jobs:
