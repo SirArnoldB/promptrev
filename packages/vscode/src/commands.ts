@@ -16,10 +16,18 @@ function consumeResult(timestamp: number): EnhancerOutput | undefined {
   return result;
 }
 
-export function registerCommands(context: vscode.ExtensionContext, _historyPanel: HistoryPanelProvider): void {
+export function registerCommands(
+  context: vscode.ExtensionContext,
+  _historyPanel: HistoryPanelProvider,
+  openTemplatePicker: () => Promise<void>
+): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('promptrev.openHistory', () => {
       void vscode.commands.executeCommand('promptrev.history.focus');
+    }),
+
+    vscode.commands.registerCommand('promptrev.openTemplatePicker', () => {
+      void openTemplatePicker();
     }),
 
     vscode.commands.registerCommand('promptrev.accept', async (timestamp?: number) => {

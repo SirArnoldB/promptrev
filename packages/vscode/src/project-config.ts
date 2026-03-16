@@ -1,10 +1,19 @@
 import * as vscode from 'vscode';
-import { BUILT_IN_MODIFIERS } from '@promptrev/core';
-import type { ModifierDefinition } from '@promptrev/core';
+import { BUILT_IN_MODIFIERS, BUILT_IN_TEMPLATES } from '@promptrev/core';
+import type { ModifierDefinition, PromptTemplate } from '@promptrev/core';
 
 export interface ProjectConfig {
   domainContext?: string;
   modifiers?: Record<string, Partial<ModifierDefinition>>;
+  templates?: Record<string, Partial<PromptTemplate>>;
+}
+
+/** Source label shown in the template Quick Pick */
+export type TemplateSource = 'built-in' | 'user' | 'team';
+
+export interface MergedTemplate {
+  template: PromptTemplate;
+  source: TemplateSource;
 }
 
 const CONFIG_FILENAME = '.promptrev.json';
@@ -66,6 +75,101 @@ export class ProjectConfigProvider {
     return key in BUILT_IN_MODIFIERS || key in this.getMergedModifiers();
   }
 
+  /**
+   * Returns true if the key is a known template (built-in or user/team defined).
+   */
+  isKnownTemplate(key: string): boolean {
+    return key in BUILT_IN_TEMPLATES || key in this.getMergedRawTemplates();
+  }
+
+  /**
+   * Returns user+team templates merged (no built-ins).
+   * Used internally for merge operations.
+   */
+  getMergedRawTemplates(): Record<string, Partial<PromptTemplate>> {
+    const userSettings = vscode.workspace
+      .getConfiguration('promptrev')
+      .get<Record<string, Partial<PromptTemplate>>>('templates') ?? {};
+    return { ...userSettings, ...this._config.templates };
+  }
+
+  /**
+   * Returns all templates — built-ins, then user settings, then project templates.
+   * Annotated with their source for display in the picker.
+   *
+   * Merge precedence (highest → lowest):
+   *   .promptrev.json  >  settings.json (promptrev.templates)  >  built-ins
+   */
+  getMergedTemplates(): MergedTemplate[] {
+    const userSettings = vscode.workspace
+      .getConfiguration('promptrev')
+      .get<Record<string, Partial<PromptTemplate>>>('templates') ?? {};
+    const projectTemplates = this._config.templates ?? {};
+
+    const result: MergedTemplate[] = [];
+    const seen = new Set<string>();
+
+    // Built-ins first (may be overridden by later layers)
+    for (const [key, tpl] of Object.entries(BUILT_IN_TEMPLATES)) {
+      const merged: PromptTemplate = {
+        ...tpl,
+        ...(userSettings[key] ?? {}),
+        ...(projectTemplates[key] ?? {}),
+      } as PromptTemplate;
+
+      // Determine effective source (overridden built-ins still show as built-in
+      // unless only user/team defined)
+      const source: TemplateSource = projectTemplates[key]
+        ? 'team'
+        : userSettings[key]
+        ? 'user'
+        : 'built-in';
+
+      result.push({ template: merged, source });
+      seen.add(key);
+    }
+
+    // User-defined (not overriding a built-in)
+    for (const [key, partial] of Object.entries(userSettings)) {
+      if (seen.has(key)) continue;
+      if (!partial.template) continue; // skip incomplete user definitions
+      result.push({
+        template: {
+          key,
+          name: partial.name ?? key,
+          description: partial.description ?? `Custom template: ${key}`,
+          tags: partial.tags ?? [],
+          template: partial.template,
+          variables: partial.variables ?? [],
+          suggestedModifier: partial.suggestedModifier,
+        },
+        source: 'user',
+      });
+      seen.add(key);
+    }
+
+    // Project / team templates (not overriding anything already seen)
+    for (const [key, partial] of Object.entries(projectTemplates)) {
+      if (seen.has(key)) continue;
+      if (!partial.template) continue;
+      result.push({
+        template: {
+          key,
+          name: partial.name ?? key,
+          description: partial.description ?? `Team template: ${key}`,
+          tags: partial.tags ?? [],
+          template: partial.template,
+          variables: partial.variables ?? [],
+          suggestedModifier: partial.suggestedModifier,
+        },
+        source: 'team',
+      });
+      seen.add(key);
+    }
+
+    return result;
+  }
+
   private async _reload(): Promise<void> {
     const folder = vscode.workspace.workspaceFolders?.[0];
     if (!folder) {
@@ -105,6 +209,10 @@ export class ProjectConfigProvider {
 
     if (typeof obj.modifiers === 'object' && obj.modifiers !== null && !Array.isArray(obj.modifiers)) {
       result.modifiers = obj.modifiers as Record<string, Partial<ModifierDefinition>>;
+    }
+
+    if (typeof obj.templates === 'object' && obj.templates !== null && !Array.isArray(obj.templates)) {
+      result.templates = obj.templates as Record<string, Partial<PromptTemplate>>;
     }
 
     return result;

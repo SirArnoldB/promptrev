@@ -1,6 +1,6 @@
 {
   "name": "promptrev",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "description": "Enhance your AI prompts from the terminal",
   "keywords": ["prompt", "ai", "cli", "enhancement", "anthropic", "claude"],
   "license": "MIT",

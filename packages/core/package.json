@@ -1,6 +1,6 @@
 {
   "name": "@promptrev/core",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "description": "PromptRev core enhancement engine — shared logic for VS Code extension and CLI",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

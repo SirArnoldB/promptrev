@@ -5,6 +5,7 @@ import { registerCommands } from './commands';
 import { initHistoryManager } from './history-manager';
 import { HistoryPanelProvider } from './history-panel';
 import { ProjectConfigProvider } from './project-config';
+import { openTemplatePickerCommand } from './template-picker';
 
 export function activate(context: vscode.ExtensionContext): void {
   initHistoryManager(context);
@@ -19,7 +20,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Load .promptrev.json asynchronously — participant/keybinding read it on each invocation
   void projectConfig.init();
 
-  registerCommands(context, historyPanel);
+  registerCommands(context, historyPanel, () =>
+    openTemplatePickerCommand(historyPanel, projectConfig)
+  );
   registerParticipant(context, historyPanel, projectConfig);
   registerKeybinding(context, historyPanel, projectConfig);
 }
