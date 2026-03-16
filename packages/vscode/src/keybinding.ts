@@ -4,8 +4,13 @@ import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { selectModel } from './model-selector';
 import { getHistoryManager } from './history-manager';
 import type { HistoryPanelProvider } from './history-panel';
+import type { ProjectConfigProvider } from './project-config';
 
-export function registerKeybinding(context: vscode.ExtensionContext, historyPanel: HistoryPanelProvider): void {
+export function registerKeybinding(
+  context: vscode.ExtensionContext,
+  historyPanel: HistoryPanelProvider,
+  projectConfig: ProjectConfigProvider
+): void {
   const cmd = vscode.commands.registerCommand('promptrev.enhanceSelection', async () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
@@ -18,9 +23,8 @@ export function registerKeybinding(context: vscode.ExtensionContext, historyPane
       return;
     }
 
-    const config = vscode.workspace.getConfiguration('promptrev');
-    const domainContext = config.get<string>('domainContext') || undefined;
-    const userModifiers = config.get<Record<string, object>>('modifiers') || {};
+    const domainContext = projectConfig.getMergedDomainContext();
+    const userModifiers = projectConfig.getMergedModifiers();
 
     const tokenSource = new vscode.CancellationTokenSource();
     const model = await selectModel();
