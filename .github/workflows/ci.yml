@@ -45,6 +45,15 @@ jobs:
       - name: Test core
         run: pnpm --filter @promptrev/core test
 
+      - name: Build CLI
+        run: pnpm --filter promptrev build
+
+      - name: Typecheck CLI
+        run: pnpm --filter promptrev typecheck
+
+      - name: Test CLI
+        run: pnpm --filter promptrev test
+
       - name: Package VSIX (dry run)
         run: pnpm --filter @promptrev/vscode package
         continue-on-error: true
