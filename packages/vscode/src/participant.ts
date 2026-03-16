@@ -94,8 +94,11 @@ function renderResult(
   // Register result by timestamp — consumed on first button click
   addPendingResult(result);
 
-  // Lead with the outcome: revised prompt first, prominently
-  stream.markdown('✨ **Prompt improved** — revised prompt ready to send:\n\n');
+  // Lead with signal if available, then revised prompt
+  const signalLine = result.signal
+    ? `✨ ${result.signal}`
+    : '✨ **Prompt improved** — revised prompt ready to send:';
+  stream.markdown(`${signalLine}\n\n`);
   stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
 
   // Diff below as secondary context

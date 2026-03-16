@@ -78,6 +78,32 @@ describe('enhance', () => {
     expect(result.original).toBe('fix the bug in my module');
   });
 
+  it('parses JSON response and populates signal', async () => {
+    const jsonResponse = JSON.stringify({
+      revised: 'Fix the authentication bug in the login module.',
+      signal: 'Added specificity and scope',
+    });
+    const adapter = makeMockAdapter(jsonResponse);
+    const result = await enhance({
+      rawPrompt: 'fix the auth bug',
+      modifier: 'default',
+      modelAdapter: adapter,
+    });
+    expect(result.revised).toBe('Fix the authentication bug in the login module.');
+    expect(result.signal).toBe('Added specificity and scope');
+  });
+
+  it('falls back gracefully when LLM returns plain text instead of JSON', async () => {
+    const adapter = makeMockAdapter('Fix the authentication bug in the login module.');
+    const result = await enhance({
+      rawPrompt: 'fix the auth bug',
+      modifier: 'default',
+      modelAdapter: adapter,
+    });
+    expect(result.revised).toBe('Fix the authentication bug in the login module.');
+    expect(result.signal).toBeUndefined();
+  });
+
   it('propagates AbortError from modelAdapter', async () => {
     const abortError = new Error('Aborted');
     abortError.name = 'AbortError';

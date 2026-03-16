@@ -21,9 +21,34 @@ export interface EnhancerOutput {
   /** true if the prompt was too short or already well-formed — no changes made */
   skipped: boolean;
   diff: DiffChunk[];
+  /** One-line description of what the enhancement changed, e.g. "Added output format and constraints" */
+  signal?: string;
 }
 
 const MIN_PROMPT_LENGTH = 5;
+
+/**
+ * Parses LLM response — expects JSON { revised, signal } but falls back
+ * gracefully to plain text if the model doesn't follow the format.
+ */
+function parseEnhancerResponse(raw: string): { revised: string; signal?: string } {
+  const trimmed = raw.trim();
+  // Strip optional ```json ... ``` fence the LLM sometimes adds
+  const fenceMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  const candidate = fenceMatch ? fenceMatch[1].trim() : trimmed;
+  try {
+    const parsed = JSON.parse(candidate);
+    if (typeof parsed?.revised === 'string') {
+      return {
+        revised: parsed.revised.trim(),
+        signal: typeof parsed.signal === 'string' ? parsed.signal.trim() || undefined : undefined,
+      };
+    }
+  } catch {
+    // Not JSON — treat entire response as revised text, no signal
+  }
+  return { revised: trimmed };
+}
 
 /**
  * Interpolates {domainContext} placeholder in a system prompt.
@@ -58,6 +83,7 @@ export async function enhance(input: EnhancerInput): Promise<EnhancerOutput> {
   const modifierDef = resolveModifier(modifier as string, userModifiers);
 
   let revised: string;
+  let qualitySignal: string | undefined;
 
   if (!modifierDef.useLLM) {
     // :fast mode — rule-based only, no LLM call
@@ -66,8 +92,8 @@ export async function enhance(input: EnhancerInput): Promise<EnhancerOutput> {
     const systemPrompt = interpolateSystemPrompt(modifierDef.systemPrompt, domainContext);
 
     try {
-      revised = await modelAdapter.complete(systemPrompt, rawPrompt, signal);
-      revised = revised.trim();
+      const raw = await modelAdapter.complete(systemPrompt, rawPrompt, signal);
+      ({ revised, signal: qualitySignal } = parseEnhancerResponse(raw));
     } catch (err) {
       // If LLM call fails, fall back to rule-based
       if (err instanceof Error && err.name === 'AbortError') {
@@ -93,5 +119,6 @@ export async function enhance(input: EnhancerInput): Promise<EnhancerOutput> {
     timestamp,
     skipped,
     diff,
+    signal: qualitySignal,
   };
 }

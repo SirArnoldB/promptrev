@@ -31,7 +31,12 @@ Rules:
 - Fix grammar and spelling
 - Remove vague filler language
 - Do not make the prompt longer than necessary
-- Return ONLY the rewritten prompt — no explanation, no preamble
+
+Return a JSON object with exactly two fields:
+- "revised": the rewritten prompt
+- "signal": a concise one-line description of what changed (e.g. "Added output format and scope constraints")
+
+Example: {"revised": "...", "signal": "Added output format and domain context"}
 
 Domain context (if provided): {domainContext}`;
 
@@ -44,7 +49,7 @@ Add:
 - Output structure (numbered sections, headers)
 - "Think step by step" closing instruction
 
-Return ONLY the rewritten prompt.`;
+Return a JSON object: {"revised": "<rewritten prompt>", "signal": "<one-line description of what changed>"}`;
 
 const ARCHITECT_SYSTEM_PROMPT = `You are a software architect and prompt engineer. Rewrite this prompt to elicit a thorough architectural analysis.
 
@@ -55,7 +60,7 @@ Focus on:
 - Decision points that require explicit choices
 - Output structure with clear sections
 
-Return ONLY the rewritten prompt.`;
+Return a JSON object: {"revised": "<rewritten prompt>", "signal": "<one-line description of what changed>"}`
 
 const CRITIC_SYSTEM_PROMPT = `You are an adversarial reviewer and prompt engineer. Rewrite this prompt to elicit critical, failure-focused analysis.
 
@@ -66,7 +71,7 @@ Reframe the prompt to:
 - Request the top 3 highest-priority improvements
 - Emphasize: do not just describe what the code does — focus on what could go wrong
 
-Return ONLY the rewritten prompt.`;
+Return a JSON object: {"revised": "<rewritten prompt>", "signal": "<one-line description of what changed>"}`
 
 const SPELL_SYSTEM_PROMPT = `You are a grammar and spelling corrector. Fix only spelling mistakes and grammatical errors in the user's prompt.
 
@@ -75,7 +80,8 @@ Rules:
 - Do NOT add context, output format requirements, or extra instructions
 - Fix only: typos, misspellings, grammar errors, punctuation
 - Preserve the user's original words and structure as much as possible
-- Return ONLY the corrected prompt`;
+
+Return a JSON object: {"revised": "<corrected prompt>", "signal": "<one-line description, e.g. 'Fixed 3 spelling errors and punctuation'>"}`;
 
 const SPEC_SYSTEM_PROMPT = `You are a product and engineering spec writer. Convert the user's vague idea into a structured specification prompt.
 
@@ -87,7 +93,7 @@ The rewritten prompt should ask the AI to produce:
 - Out-of-scope items
 - Open questions
 
-Return ONLY the rewritten prompt that will elicit this structured spec.`;
+Return a JSON object: {"revised": "<rewritten prompt>", "signal": "<one-line description of what changed>"}`;
 
 export const BUILT_IN_MODIFIERS: Record<string, ModifierDefinition> = {
   default: {
