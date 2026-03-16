@@ -20,3 +20,7 @@ export type { HistoryEntry, HistoryStorage } from './history';
 
 // Rule-based enhancement
 export { ruleBasedEnhance } from './rule-based';
+
+// Prompt templates
+export { BUILT_IN_TEMPLATES, resolveTemplate, TemplateVariableError } from './templates';
+export type { PromptTemplate, TemplateVariable } from './templates';

@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { enhance, RuleBasedAdapter, resolveModifier, formatDiffMarkdown } from '@promptrev/core';
+import { enhance, RuleBasedAdapter, resolveModifier, formatDiffMarkdown, BUILT_IN_TEMPLATES } from '@promptrev/core';
 import type { EnhancerOutput } from '@promptrev/core';
 import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { parseModifierFromCommand } from './utils';
 import { selectModel, handleNoModel } from './model-selector';
 import { addPendingResult } from './commands';
 import { getHistoryManager } from './history-manager';
+import { runTemplateFlow } from './template-picker';
 import type { HistoryPanelProvider } from './history-panel';
 import type { ProjectConfigProvider } from './project-config';
 
@@ -32,7 +33,29 @@ async function handler(
   historyPanel: HistoryPanelProvider,
   projectConfig: ProjectConfigProvider
 ): Promise<void> {
-  const modifier = parseModifierFromCommand(request.command);
+  const command = request.command;
+
+  // ── Template flow: @rev /template or @rev /bug-fix etc. ──────────────────
+  const isTemplateCommand =
+    command === 'template' ||
+    (command !== undefined && command in BUILT_IN_TEMPLATES) ||
+    projectConfig.isKnownTemplate(command ?? '');
+
+  if (isTemplateCommand) {
+    // 'template' with no pre-selection → open picker
+    // any other template key → go straight to variable input
+    await runTemplateFlow(
+      stream,
+      token,
+      historyPanel,
+      projectConfig,
+      command !== 'template' ? command : undefined
+    );
+    return;
+  }
+
+  // ── Modifier flow (existing behaviour) ────────────────────────────────────
+  const modifier = parseModifierFromCommand(command);
   const rawPrompt = request.prompt.trim();
 
   if (!rawPrompt) {

@@ -2,7 +2,7 @@
   "name": "promptrev",
   "displayName": "PromptRev",
   "description": "Instantly enhance your AI prompts with @rev",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "publisher": "promptrev",
   "repository": {
     "type": "git",
@@ -54,6 +54,42 @@
           {
             "name": "spec",
             "description": "Convert idea to structured spec with acceptance criteria"
+          },
+          {
+            "name": "template",
+            "description": "Browse and fill a prompt template"
+          },
+          {
+            "name": "bug-fix",
+            "description": "Template: structured debugging prompt with root cause + fix + regression test"
+          },
+          {
+            "name": "code-review",
+            "description": "Template: structured code review with severity ratings and suggested fixes"
+          },
+          {
+            "name": "architecture",
+            "description": "Template: system design with requirements, constraints, and trade-offs"
+          },
+          {
+            "name": "refactor",
+            "description": "Template: targeted refactor with goals, constraints, and risk notes"
+          },
+          {
+            "name": "test-generation",
+            "description": "Template: test generation with coverage goals and edge cases"
+          },
+          {
+            "name": "explain-code",
+            "description": "Template: code explanation at a specified audience level"
+          },
+          {
+            "name": "pr-description",
+            "description": "Template: PR title, summary, and test plan from code changes"
+          },
+          {
+            "name": "incident-postmortem",
+            "description": "Template: incident postmortem with timeline, root cause, and action items"
           }
         ]
       }
@@ -82,6 +118,10 @@
       {
         "command": "promptrev.dismiss",
         "title": "PromptRev: Dismiss Enhancement"
+      },
+      {
+        "command": "promptrev.openTemplatePicker",
+        "title": "PromptRev: Browse Templates"
       }
     ],
     "keybindings": [
@@ -90,6 +130,11 @@
         "key": "ctrl+shift+e",
         "mac": "cmd+shift+e",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "promptrev.openTemplatePicker",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t"
       }
     ],
     "configuration": {
@@ -137,6 +182,11 @@
           "type": "object",
           "default": {},
           "description": "Custom modifier definitions or overrides for built-in modifiers"
+        },
+        "promptrev.templates": {
+          "type": "object",
+          "default": {},
+          "description": "Custom template definitions. Each key is a template identifier; each value is a PromptTemplate object with name, description, template string, and variables array."
         }
       }
     },
