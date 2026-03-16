@@ -47,13 +47,19 @@ const COMMON_DEV_CORRECTIONS: Record<string, string> = {
   'authorizaton': 'authorization',
 };
 
+// Pre-compiled at module load — keys are static constants, never user input.
+// Avoids repeated RegExp construction in hot path and eliminates any
+// theoretical risk if the table were ever extended with user-controlled values.
+const COMPILED_CORRECTIONS: Array<[RegExp, string]> = Object.entries(
+  COMMON_DEV_CORRECTIONS
+).map(([typo, correction]) => [new RegExp(`\\b${typo}\\b`, 'gi'), correction]);
+
 /**
  * Fix common developer typos using a lookup table.
  */
 function fixCommonTypos(text: string): string {
   let result = text;
-  for (const [typo, correction] of Object.entries(COMMON_DEV_CORRECTIONS)) {
-    const regex = new RegExp(`\\b${typo}\\b`, 'gi');
+  for (const [regex, correction] of COMPILED_CORRECTIONS) {
     result = result.replace(regex, (match) => {
       // Preserve original casing
       if (match[0] === match[0].toUpperCase()) {

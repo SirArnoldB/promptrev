@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { enhance, RuleBasedAdapter, BUILT_IN_MODIFIERS } from '@promptrev/core';
 import { AnthropicModelAdapter, resolveApiKey } from '../anthropic-adapter.js';
 
@@ -95,10 +96,11 @@ async function resolvePrompt(arg?: string, filePath?: string): Promise<string> {
   if (arg) return arg.trim();
 
   if (filePath) {
+    const normalizedPath = resolve(filePath);
     try {
-      return readFileSync(filePath, 'utf8').trim();
+      return readFileSync(normalizedPath, 'utf8').trim();
     } catch {
-      console.error(`Error: Could not read file: ${filePath}`);
+      console.error(`Error: Could not read file: ${normalizedPath}`);
       process.exit(1);
     }
   }
