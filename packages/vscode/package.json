@@ -1,12 +1,22 @@
 {
-  "name": "@promptrev/vscode",
+  "name": "promptrev-vscode",
   "displayName": "PromptRev",
   "description": "Instantly enhance your AI prompts with @rev",
   "version": "0.1.0",
   "publisher": "promptrev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SirArnoldB/promptrev"
+  },
+  "license": "MIT",
   "private": true,
   "engines": {
     "vscode": "^1.85.0"
+  },
+  "icon": "icons/rev.png",
+  "galleryBanner": {
+    "color": "#4F46E5",
+    "theme": "dark"
   },
   "categories": ["AI", "Other"],
   "keywords": ["prompt", "ai", "copilot", "enhancement", "chat"],
