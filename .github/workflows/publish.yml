@@ -13,6 +13,11 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
 
+    # Required for npm Trusted Publishing (OIDC) — no NPM_TOKEN secret needed
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -46,11 +51,9 @@ jobs:
             echo "promptrev@$LOCAL is already published — skipping."
           else
             echo "Publishing promptrev@$LOCAL..."
-            cd packages/cli && npm publish
+            cd packages/cli && npm publish --provenance --access public
             echo "✅ Published promptrev@$LOCAL to npm"
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # ── VS Code Marketplace ──────────────────────────────────────────────────────
   publish-vscode:
