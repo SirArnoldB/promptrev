@@ -94,21 +94,19 @@ function renderResult(
   // Register result by timestamp — consumed on first button click
   addPendingResult(result);
 
-  // Diff view
-  stream.markdown(formatDiffMarkdown(result.original, result.revised));
-  stream.markdown('\n\n---\n\n**Revised prompt:**\n\n');
+  // Lead with the outcome: revised prompt first, prominently
+  stream.markdown('✨ **Prompt improved** — revised prompt ready to send:\n\n');
   stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
+
+  // Diff below as secondary context
+  stream.markdown('\n\n**Changes:**\n\n');
+  stream.markdown(formatDiffMarkdown(result.original, result.revised));
   stream.markdown('\n\n');
 
-  // Action buttons — pass timestamp as ID, not the text, so re-clicks are no-ops (#13)
+  // Three buttons — clear hierarchy, no Dismiss (closing chat is implicit dismissal)
   stream.button({
     command: 'promptrev.accept',
-    title: '$(check) Accept & Send',
-    arguments: [result.timestamp],
-  });
-  stream.button({
-    command: 'promptrev.editFirst',
-    title: '$(edit) Edit First',
+    title: '$(check) Send Improved',
     arguments: [result.timestamp],
   });
   stream.button({
@@ -117,8 +115,8 @@ function renderResult(
     arguments: [result.timestamp],
   });
   stream.button({
-    command: 'promptrev.dismiss',
-    title: '$(close) Dismiss',
+    command: 'promptrev.editFirst',
+    title: '$(edit) Edit',
     arguments: [result.timestamp],
   });
 }
