@@ -277,7 +277,9 @@ export class HistoryPanelProvider implements vscode.WebviewViewProvider {
     }
 
     window.addEventListener('message', e => {
-      if (e.data.type === 'update') renderEntries(e.data.entries);
+      // Only accept messages from the extension host (same origin)
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === 'update') renderEntries(e.data.entries);
     });
   </script>
 </body>
