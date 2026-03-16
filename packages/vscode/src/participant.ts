@@ -7,10 +7,18 @@ import { selectModel, handleNoModel } from './model-selector';
 import { addPendingResult } from './commands';
 import { getHistoryManager } from './history-manager';
 import type { HistoryPanelProvider } from './history-panel';
+import type { ProjectConfigProvider } from './project-config';
 
-export function registerParticipant(context: vscode.ExtensionContext, historyPanel: HistoryPanelProvider): void {
+// Track unknown modifiers already notified this session — avoid repeated toasts
+const _notifiedUnknownModifiers = new Set<string>();
+
+export function registerParticipant(
+  context: vscode.ExtensionContext,
+  historyPanel: HistoryPanelProvider,
+  projectConfig: ProjectConfigProvider
+): void {
   const participant = vscode.chat.createChatParticipant('promptrev.rev', (req, ctx, stream, token) =>
-    handler(req, ctx, stream, token, historyPanel)
+    handler(req, ctx, stream, token, historyPanel, projectConfig)
   );
   participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icons', 'rev.png');
   context.subscriptions.push(participant);
@@ -21,7 +29,8 @@ async function handler(
   _context: vscode.ChatContext,
   stream: vscode.ChatResponseStream,
   token: vscode.CancellationToken,
-  historyPanel: HistoryPanelProvider
+  historyPanel: HistoryPanelProvider,
+  projectConfig: ProjectConfigProvider
 ): Promise<void> {
   const modifier = parseModifierFromCommand(request.command);
   const rawPrompt = request.prompt.trim();
@@ -31,9 +40,16 @@ async function handler(
     return;
   }
 
-  const config = vscode.workspace.getConfiguration('promptrev');
-  const domainContext = config.get<string>('domainContext') || undefined;
-  const userModifiers = config.get<Record<string, object>>('modifiers') || {};
+  const domainContext = projectConfig.getMergedDomainContext();
+  const userModifiers = projectConfig.getMergedModifiers();
+
+  // Notify once per session if an unknown modifier key was typed (#23)
+  if (modifier !== 'default' && !projectConfig.isKnownModifier(modifier) && !_notifiedUnknownModifiers.has(modifier)) {
+    _notifiedUnknownModifiers.add(modifier);
+    vscode.window.showInformationMessage(
+      `PromptRev: Unknown modifier "${modifier}" — falling back to default. Define it in .promptrev.json or settings.json to use it.`
+    );
+  }
 
   // Resolve modifier definition to check acceptMode up front
   const modifierDef = resolveModifier(modifier, userModifiers);
