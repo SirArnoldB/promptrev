@@ -6,16 +6,16 @@ import { resolve } from 'path';
 const BIN = resolve(__dirname, '../../dist/bin/rev.js');
 
 describe('rev CLI', () => {
-  it('--mod fast enhances prompt without API call', async () => {
-    const { stdout, exitCode } = await execa('node', [BIN, '--mod', 'fast', 'fix the bug in my app'], {
+  it('--mod rb enhances prompt without API call', async () => {
+    const { stdout, exitCode } = await execa('node', [BIN, '--mod', 'rb', 'fix the bug in my app'], {
       env: { ...process.env, PROMPTREV_API_KEY: undefined, ANTHROPIC_API_KEY: undefined },
     });
     expect(exitCode).toBe(0);
     expect(stdout.length).toBeGreaterThan(0);
   });
 
-  it('--mod fast reads from stdin', async () => {
-    const { stdout, exitCode } = await execa('node', [BIN, '--mod', 'fast'], {
+  it('--mod rb reads from stdin', async () => {
+    const { stdout, exitCode } = await execa('node', [BIN, '--mod', 'rb'], {
       input: 'fix the authentication bug',
       env: { ...process.env, PROMPTREV_API_KEY: undefined, ANTHROPIC_API_KEY: undefined },
     });
@@ -23,10 +23,10 @@ describe('rev CLI', () => {
     expect(stdout.length).toBeGreaterThan(0);
   });
 
-  it('--json outputs valid JSON with expected shape for --mod fast', async () => {
+  it('--json outputs valid JSON with expected shape for --mod rb', async () => {
     const { stdout, exitCode } = await execa(
       'node',
-      [BIN, '--mod', 'fast', '--json', 'fix the bug in my app'],
+      [BIN, '--mod', 'rb', '--json', 'fix the bug in my app'],
       {
         env: { ...process.env, PROMPTREV_API_KEY: undefined, ANTHROPIC_API_KEY: undefined },
       }
@@ -45,7 +45,7 @@ describe('rev CLI', () => {
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Modifier');
     expect(stdout).toContain('default');
-    expect(stdout).toContain('fast');
+    expect(stdout).toContain('rb');
     expect(stdout).toContain('deep');
   });
 
@@ -63,7 +63,7 @@ describe('rev CLI', () => {
   });
 
   it('exits 1 with error when no prompt provided', async () => {
-    const { stderr, exitCode } = await execa('node', [BIN, '--mod', 'fast'], {
+    const { stderr, exitCode } = await execa('node', [BIN, '--mod', 'rb'], {
       reject: false,
       // No input, no arg, isTTY will be false but stdin will end immediately
       input: '',

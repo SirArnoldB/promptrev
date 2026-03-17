@@ -32,8 +32,8 @@
         "isSticky": false,
         "commands": [
           {
-            "name": "fast",
-            "description": "Quick sharpen — rule-based, zero latency, auto-accept"
+            "name": "rb",
+            "description": "Rule-based enhancement — no model required, auto-accept"
           },
           {
             "name": "deep",

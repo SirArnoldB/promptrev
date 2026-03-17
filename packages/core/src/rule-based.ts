@@ -1,5 +1,5 @@
 /**
- * Rule-based prompt enhancement for :fast mode.
+ * Rule-based prompt enhancement for :rb mode.
  * No LLM call — deterministic, zero latency.
  */
 
@@ -117,7 +117,7 @@ function ensureImperative(text: string): string {
 
 /**
  * Apply all rule-based enhancements in sequence.
- * Used by :fast mode — no LLM call required.
+ * Used by :rb mode — no LLM call required.
  */
 export function ruleBasedEnhance(raw: string): string {
   let result = raw.trim();

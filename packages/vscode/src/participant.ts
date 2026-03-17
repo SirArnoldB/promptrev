@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { enhance, RuleBasedAdapter, resolveModifier, formatDiffMarkdown, BUILT_IN_TEMPLATES } from '@promptrev/core';
+import { enhance, RuleBasedAdapter, resolveModifier, BUILT_IN_TEMPLATES } from '@promptrev/core';
 import type { EnhancerOutput } from '@promptrev/core';
 import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { parseModifierFromCommand } from './utils';
@@ -120,7 +120,7 @@ async function handler(
     });
     historyPanel.refresh();
 
-    // :fast and any modifier with acceptMode:'auto' — skip diff, show result directly (#13)
+    // :rb and any modifier with acceptMode:'auto' — skip diff, show result directly (#13)
     if (modifierDef.acceptMode === 'auto') {
       stream.markdown(`**Enhanced prompt:**\n\n\`\`\`\n${result.revised}\n\`\`\``);
       addPendingResult(result);
@@ -152,12 +152,7 @@ function renderResult(
     ? `✨ ${result.signal}`
     : '✨ **Prompt improved** — revised prompt ready to send:';
   stream.markdown(`${signalLine}\n\n`);
-  stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
-
-  // Diff below as secondary context
-  stream.markdown('\n\n**Changes:**\n\n');
-  stream.markdown(formatDiffMarkdown(result.original, result.revised));
-  stream.markdown('\n\n');
+  stream.markdown(`\`\`\`\n${result.revised}\n\`\`\`\n\n`);
 
   // Three buttons — clear hierarchy, no Dismiss (closing chat is implicit dismissal)
   stream.button({

@@ -86,7 +86,7 @@ export async function enhance(input: EnhancerInput): Promise<EnhancerOutput> {
   let qualitySignal: string | undefined;
 
   if (!modifierDef.useLLM) {
-    // :fast mode — rule-based only, no LLM call
+    // :rb mode — rule-based only, no LLM call
     revised = ruleBasedEnhance(rawPrompt);
   } else {
     const systemPrompt = interpolateSystemPrompt(modifierDef.systemPrompt, domainContext);

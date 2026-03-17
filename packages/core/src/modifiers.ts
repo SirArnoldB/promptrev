@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const ModifierKeySchema = z.enum([
   'default',
-  'fast',
+  'rb',
   'deep',
   'architect',
   'critic',
@@ -18,7 +18,7 @@ export interface ModifierDefinition {
   systemPrompt: string;
   acceptMode: 'diff' | 'auto';
   autoSend: boolean;
-  /** false = rule-based only, no LLM call (used by :fast) */
+  /** false = rule-based only, no LLM call (used by :rb) */
   useLLM: boolean;
 }
 
@@ -105,10 +105,10 @@ export const BUILT_IN_MODIFIERS: Record<string, ModifierDefinition> = {
     autoSend: false,
     useLLM: true,
   },
-  fast: {
-    key: 'fast',
-    label: 'Fast',
-    description: 'Quick sharpen — rule-based, zero latency, auto-accept',
+  rb: {
+    key: 'rb',
+    label: 'Rule-Based',
+    description: 'Rule-based enhancement — no model required, auto-accept',
     systemPrompt: '', // rule-based: no LLM system prompt
     acceptMode: 'auto',
     autoSend: true,
