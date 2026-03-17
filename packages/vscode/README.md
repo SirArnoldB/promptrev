@@ -128,4 +128,4 @@ Commit a `.promptrev.json` at the repo root to share modifiers and templates acr
 - VS Code `1.85.0` or later
 - GitHub Copilot or another VS Code language model extension (recommended)
 
-If no model is available, `:fast` mode still works via rule-based enhancement — no model required.
+If no model is available, `:rb` mode still works via rule-based enhancement — no model required.
