@@ -27,7 +27,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -50,8 +51,9 @@ jobs:
             echo "promptrev@$LOCAL is already published — skipping."
           else
             echo "Publishing promptrev@$LOCAL..."
-            # Clear any stale auth token so npm uses OIDC Trusted Publishing
-            npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
+            # Remove the NODE_AUTH_TOKEN placeholder written by setup-node so
+            # npm falls through to OIDC Trusted Publishing automatically
+            npm config delete //registry.npmjs.org/:_authToken
             cd packages/cli && npm publish --provenance --access public
             echo "✅ Published promptrev@$LOCAL to npm"
           fi
@@ -70,7 +72,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
