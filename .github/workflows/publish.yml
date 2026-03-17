@@ -28,6 +28,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      # npm ≥11.5.1 is required for OIDC Trusted Publishing
+      - name: Upgrade npm
+        run: npm install -g npm@11.5.1
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -37,6 +42,15 @@ jobs:
 
       - name: Build CLI
         run: pnpm --filter './packages/cli' build
+
+      - name: Ensure no npm auth token (OIDC Trusted Publishing)
+        run: |
+          NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          if [ -f "$NPMRC" ]; then
+            echo "Removing any _authToken entries from $NPMRC"
+            sed -i.bak '/_authToken/d' "$NPMRC"
+            rm -f "$NPMRC.bak"
+          fi
 
       - name: Check version and publish
         run: |
@@ -50,8 +64,6 @@ jobs:
             echo "promptrev@$LOCAL is already published — skipping."
           else
             echo "Publishing promptrev@$LOCAL..."
-            # Clear any stale auth token so npm uses OIDC Trusted Publishing
-            npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
             cd packages/cli && npm publish --provenance --access public
             echo "✅ Published promptrev@$LOCAL to npm"
           fi
