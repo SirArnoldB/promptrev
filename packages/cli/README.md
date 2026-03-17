@@ -18,8 +18,8 @@ npx promptrev "my prompt"
 # Basic enhancement (requires ANTHROPIC_API_KEY)
 rev "fix the auth bug in my app"
 
-# Rule-based fast mode — no API key needed
-rev --mod fast "explain this code"
+# Rule-based mode — no API key needed
+rev --mod rb "explain this code"
 
 # Pipe into any tool
 rev "design a rate limiter" | claude
@@ -52,7 +52,7 @@ Get a key at [console.anthropic.com](https://console.anthropic.com/settings/keys
 | Modifier | Description |
 |---|---|
 | `default` | Grammar, clarity, structure, and missing context |
-| `fast` | Rule-based sharpen — zero latency, no API key |
+| `rb` | Rule-based sharpen — no model required |
 | `deep` | Chain-of-thought, edge cases, structured output |
 | `architect` | System design framing — trade-offs, scalability |
 | `critic` | Adversarial review — failure modes, assumptions |

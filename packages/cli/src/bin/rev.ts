@@ -34,7 +34,7 @@ program
     const modifier = options.mod as string;
     const isFast = modifier === 'rb';
 
-    // :fast uses rule-based adapter — no API key required
+    // :rb uses rule-based adapter — no API key required
     let adapter;
     if (isFast) {
       adapter = new RuleBasedAdapter();

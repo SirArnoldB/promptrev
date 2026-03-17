@@ -120,7 +120,7 @@ The enhancement engine. Pure TypeScript — no VS Code API, no filesystem, no HT
 - `model-adapter.ts` — `ModelAdapter` interface + `RuleBasedAdapter`
 - `diff.ts` — word-level diff utilities
 - `history.ts` — `HistoryManager` with pluggable storage
-- `rule-based.ts` — `:fast` mode, deterministic text cleanup
+- `rule-based.ts` — `:rb` mode, deterministic text cleanup
 
 ### `packages/vscode`
 
