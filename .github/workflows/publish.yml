@@ -43,6 +43,15 @@ jobs:
       - name: Build CLI
         run: pnpm --filter './packages/cli' build
 
+      - name: Ensure no npm auth token (OIDC Trusted Publishing)
+        run: |
+          NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          if [ -f "$NPMRC" ]; then
+            echo "Removing any _authToken entries from $NPMRC"
+            sed -i.bak '/_authToken/d' "$NPMRC"
+            rm -f "$NPMRC.bak"
+          fi
+
       - name: Check version and publish
         run: |
           LOCAL=$(node -p "require('./packages/cli/package.json').version")
