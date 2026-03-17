@@ -30,6 +30,10 @@ jobs:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
 
+      # npm ≥11.5.1 is required for OIDC Trusted Publishing
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -51,9 +55,6 @@ jobs:
             echo "promptrev@$LOCAL is already published — skipping."
           else
             echo "Publishing promptrev@$LOCAL..."
-            # Remove the NODE_AUTH_TOKEN placeholder written by setup-node so
-            # npm falls through to OIDC Trusted Publishing automatically
-            npm config delete //registry.npmjs.org/:_authToken
             cd packages/cli && npm publish --provenance --access public
             echo "✅ Published promptrev@$LOCAL to npm"
           fi
