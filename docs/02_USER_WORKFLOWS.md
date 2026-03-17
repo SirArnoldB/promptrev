@@ -139,15 +139,15 @@ This document describes real-world user workflows and scenarios for PromptRev. E
 ### Workflow 4 — Fast Mode for Quick Fixes
 
 **Persona:** Developer in flow state, wants zero friction  
-**Trigger:** `@rev:fast` modifier  
+**Trigger:** `@rev /rb` modifier  
 **Goal:** Sharpen a prompt instantly with no review step, send immediately
 
 **Steps:**
 
 ```
-1. User types: @rev:fast fix null check on user.profile
+1. User types: @rev /rb fix null check on user.profile
 
-2. PromptRev runs rule-based cleanup (no LLM call in fast mode):
+2. PromptRev runs rule-based cleanup (no LLM call in rb mode):
    - Fix grammar/spelling
    - Remove filler words
    - Add minimal structure
@@ -157,13 +157,13 @@ This document describes real-world user workflows and scenarios for PromptRev. E
    runtime errors. Apply the fix where user.profile is first
    accessed."
 
-4. Polished prompt is sent directly to AI (autoSend: true for :fast)
+4. Polished prompt is sent directly to AI (autoSend: true for :rb)
 ```
 
 **Notes:**
-- `:fast` uses rule-based processing by default — truly zero latency, no API call
-- `autoSend` is `true` by default for `:fast` — the whole point is zero friction
-- User can override to use LLM for `:fast` in settings if they want higher quality
+- `:rb` uses rule-based processing by default — truly zero latency, no API call
+- `autoSend` is `true` by default for `:rb` — the whole point is zero friction
+- User can override to use LLM for `:rb` in settings if they want higher quality
 
 ---
 
@@ -305,7 +305,7 @@ rev --file prompt_draft.txt --mod architect
 User invokes @rev but has no Copilot subscription and no API key configured.
 
 Behavior:
-- PromptRev falls back to rule-based enhancement for :fast
+- PromptRev falls back to rule-based enhancement for :rb
 - For other modifiers, shows a notification:
   "PromptRev: No language model available. Configure an API key
   in settings or activate GitHub Copilot. [Open Settings]"
@@ -374,7 +374,7 @@ Behavior:
 | Modifier | Best For | Auto-send | Latency |
 |---|---|---|---|
 | `@rev` (default) | General everyday prompts | Off | ~400ms |
-| `@rev:fast` | Quick fixes, high-velocity flow | On | ~0ms (rule-based) |
+| `@rev /rb` | Quick fixes, high-velocity flow | On | ~0ms (rule-based) |
 | `@rev:deep` | Architecture, complex tasks | Off | ~700ms |
 | `@rev:architect` | System design, trade-off analysis | Off | ~600ms |
 | `@rev:critic` | Code review, security audits | Off | ~500ms |
@@ -399,7 +399,7 @@ Panel shows:
 │              uted caching lay…" │
 │   [↩ Restore Original]          │
 │                                 │
-│ ▼ 8 min ago  [@rev:fast]        │
+│ ▼ 8 min ago  [@rev /rb]         │
 │   Original:  "fix null check"   │
 │   Revised:   "Add null guard…"  │
 │   [↩ Restore Original]          │

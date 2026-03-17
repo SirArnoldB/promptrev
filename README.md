@@ -15,7 +15,7 @@ graph TD
     CLI -->|uses| CORE
 
     CORE -->|LLM path| LM["vscode.lm / Anthropic API"]
-    CORE -->|:fast path| RB["Rule-based<br/>(zero latency)"]
+    CORE -->|:rb path| RB["Rule-based"]
 
     LM --> OUT([Enhanced prompt])
     RB --> OUT
@@ -39,7 +39,7 @@ graph LR
 
 - **`@rev` Chat Participant** — type `@rev your prompt` in VS Code Chat for instant enhancement
 - **Global keybinding** — `Cmd+Shift+E` / `Ctrl+Shift+E` to enhance selected text in any editor
-- **Modifier system** — `:fast`, `:deep`, `:architect`, `:critic`, `:spell`, `:spec`, and custom
+- **Modifier system** — `:rb`, `:deep`, `:architect`, `:critic`, `:spell`, `:spec`, and custom
 - **No extra API key needed** — reuses your existing Copilot/Claude model via `vscode.lm`
 - **Prompt history panel** — review, restore, and export past enhancements
 - **CLI + SDK** — use from the terminal or integrate into your own tools
@@ -49,7 +49,7 @@ graph LR
 | Modifier | Best for | Auto-send | Latency |
 |---|---|---|---|
 | `@rev` (default) | Everyday prompts | Off | ~400ms |
-| `@rev:fast` | High-velocity flow | On | ~0ms (rule-based) |
+| `@rev /rb` | High-velocity flow | On | ~0ms (rule-based) |
 | `@rev:deep` | Architecture, complex tasks | Off | ~700ms |
 | `@rev:architect` | System design, trade-offs | Off | ~600ms |
 | `@rev:critic` | Code review, security audits | Off | ~500ms |
@@ -97,7 +97,7 @@ Install the extension, then in any VS Code Chat panel:
 
 ```
 @rev fix the bug in my auth module
-@rev:fast fix null check on user.profile
+@rev /rb fix null check on user.profile
 @rev:deep design a scalable notification system
 @rev:architect design a job queue with retry logic
 @rev:critic review my authentication implementation
@@ -117,7 +117,7 @@ npx promptrev "fix the race condition in my queue worker"
 rev --mod deep "design a job queue system"
 
 # Pipe from stdin
-echo "fix null check" | rev --mod fast
+echo "fix null check" | rev --mod rb
 
 # JSON output
 rev --json "design a caching layer"

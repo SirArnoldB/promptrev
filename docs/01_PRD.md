@@ -56,7 +56,7 @@ The tool is deliberately invisible when you don't need it and instant when you d
 
 | Persona | Description | Primary Need |
 |---|---|---|
-| **The Flow Developer** | Writes prompts fast and dirty, wants results without slowing down | `:fast` mode, auto-accept, instant |
+| **The Flow Developer** | Writes prompts fast and dirty, wants results without slowing down | `:rb` mode, auto-accept, instant |
 | **The Architect** | Working on system design, needs prompts that produce structured thinking | `:architect` and `:deep` modes |
 | **The Junior Dev** | Doesn't yet know how to write good prompts | Default enhancement, spell check, gentle rewrites |
 | **The Team Lead** | Wants consistent AI output across the team | Custom modifier definitions, shared config |
@@ -86,7 +86,7 @@ Built-in modifiers, all user-configurable:
 | Modifier | Trigger | Behavior |
 |---|---|---|
 | Default | `@rev your prompt` | Grammar, clarity, structure, missing context injection |
-| `:fast` | `@rev:fast your prompt` | Minimal rewrite — sharpens and tightens only. Rule-based option for zero latency |
+| `:rb` | `@rev /rb your prompt` | Minimal rewrite — sharpens and tightens only. Rule-based option for zero latency |
 | `:deep` | `@rev:deep your prompt` | Adds chain-of-thought framing, edge cases, exhaustive constraints |
 | `:architect` | `@rev:architect your prompt` | Reframes toward system design, trade-offs, scalability |
 | `:critic` | `@rev:critic your prompt` | Adds failure modes, steelman opposite approach, identify assumptions |
@@ -98,13 +98,13 @@ Users can define their own modifiers in `settings.json`.
 #### F4 — Accept/Reject Diff Flow
 - Enhanced prompt appears as an inline diff (original vs revised)
 - Three actions: **Accept & Send**, **Edit First**, **Dismiss**
-- Configurable per-modifier: some modes default to auto-accept (`:fast`), others default to diff (`:deep`)
+- Configurable per-modifier: some modes default to auto-accept (`:rb`), others default to diff (`:deep`)
 - `autoSend` flag controls whether accepted prompts are automatically sent to the LLM
 
 #### F5 — Model Reuse via `vscode.lm`
 - Uses VS Code's Language Model API to route through whatever model the user already has active (Copilot, Claude, Gemini, etc.)
 - No separate API key required by default
-- Fallback chain: `vscode.lm` → user-configured API key → local rule-based (`:fast` only)
+- Fallback chain: `vscode.lm` → user-configured API key → local rule-based (`:rb` only)
 
 #### F6 — Prompt History Panel
 - Sidebar panel showing recent enhancement history
@@ -132,7 +132,7 @@ All configuration lives in VS Code `settings.json` and an optional `.promptrev.j
   "promptrev.model": "auto",
   "promptrev.domainContext": "React + TypeScript, Node.js backend, PostgreSQL",
   "promptrev.modifiers": {
-    "fast": { "acceptMode": "auto", "autoSend": true },
+    "rb": { "acceptMode": "auto", "autoSend": true },
     "deep": { "acceptMode": "diff", "autoSend": false },
     "mymode": {
       "systemPrompt": "You are a prompt engineer specializing in data science tasks. Rewrite the prompt to be precise, include dataset context, and specify expected output format.",
@@ -260,8 +260,8 @@ promptrev/
 
 | Risk | Mitigation |
 |---|---|
-| `vscode.lm` API availability varies by user setup | Fallback to user API key, then rule-based for `:fast` |
-| Enhancement latency frustrates users | Stream results, model selection defaults to Haiku/mini, `:fast` is rule-based |
+| `vscode.lm` API availability varies by user setup | Fallback to user API key, then rule-based for `:rb` |
+| Enhancement latency frustrates users | Stream results, model selection defaults to Haiku/mini, `:rb` is rule-based |
 | Users don't discover modifiers | Autocomplete shows all modifiers with descriptions in chat |
 | Prompt history grows large | Local storage with configurable max entries (default 100) |
 | VS Code injects `@rev` into actual AI request | Extension intercepts and replaces before forwarding — handled by Chat Participant API design |

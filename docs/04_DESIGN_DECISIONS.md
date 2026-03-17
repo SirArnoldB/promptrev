@@ -29,14 +29,14 @@ These are decisions we've made and should not revisit without a strong reason.
 ### DD-03: Use `vscode.lm` as the primary model in the extension
 **Decision:** The VS Code extension uses `vscode.lm` (the Language Model API) to route through whatever model the user already has active, with no separate API key required.  
 **Rationale:** Zero setup friction. The user already paid for their model. Enhancement quality improves automatically as their model improves.  
-**Fallback:** User-configured API key → rule-based (`:fast` only).
+**Fallback:** User-configured API key → rule-based (`:rb` only).
 
 ---
 
-### DD-04: `:fast` mode is rule-based with no LLM call
-**Decision:** The `:fast` modifier uses local rule-based text processing — no API call.  
-**Rationale:** If someone uses `:fast`, they're signaling they want zero friction and near-zero latency. Making an LLM call defeats the purpose. The rules (remove filler, fix obvious grammar, ensure punctuation) are sufficient for the fast-path use case.  
-**Note:** Users can override this in config if they want LLM quality for `:fast`.
+### DD-04: `:rb` mode is rule-based with no LLM call
+**Decision:** The `:rb` modifier uses local rule-based text processing — no API call.  
+**Rationale:** If someone uses `:rb`, they're signaling they want zero friction and near-zero latency. Making an LLM call defeats the purpose. The rules (remove filler, fix obvious grammar, ensure punctuation) are sufficient for the fast-path use case.  
+**Note:** Users can override this in config if they want LLM quality for `:rb`.
 
 ---
 

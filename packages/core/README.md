@@ -18,7 +18,7 @@ sequenceDiagram
     E->>M: modifier key + userModifiers
     M-->>E: ModifierDefinition
 
-    alt useLLM = false (:fast)
+    alt useLLM = false (:rb)
         E->>E: ruleBasedEnhance(rawPrompt)
     else useLLM = true
         E->>A: complete(systemPrompt, rawPrompt)
@@ -141,7 +141,7 @@ export interface ModelAdapter {
 
 | Adapter | Location | Use case |
 |---|---|---|
-| `RuleBasedAdapter` | `@promptrev/core` | `:fast` mode, no LLM, zero latency |
+| `RuleBasedAdapter` | `@promptrev/core` | `:rb` mode, no LLM, |
 | `VSCodeModelAdapter` | `@promptrev/vscode` | VS Code extension via `vscode.lm` |
 | `AnthropicModelAdapter` | `promptrev` (CLI) | CLI via Anthropic SDK |
 
@@ -171,7 +171,7 @@ class MyOpenAIAdapter implements ModelAdapter {
 | Key | `useLLM` | `acceptMode` | `autoSend` | Description |
 |---|---|---|---|---|
 | `default` | true | diff | false | Clarity, structure, context injection |
-| `fast` | false | auto | true | Rule-based only — zero latency |
+| `rb` | false | auto | true | Rule-based only — |
 | `deep` | true | diff | false | Chain-of-thought, edge cases, structure |
 | `architect` | true | diff | false | System design, trade-offs, scalability |
 | `critic` | true | diff | false | Adversarial review, failure modes |
@@ -232,7 +232,7 @@ formatDiffMarkdown('fix the bug', 'Fix the null pointer bug.');
 
 ### `ruleBasedEnhance(raw)`
 
-Applies deterministic text transformations — used by `:fast` mode.
+Applies deterministic text transformations — used by `:rb` mode.
 
 ```typescript
 import { ruleBasedEnhance } from '@promptrev/core';
@@ -258,7 +258,7 @@ src/
 ├── model-adapter.ts  ← ModelAdapter interface + RuleBasedAdapter
 ├── diff.ts           ← computeDiff(), formatDiffMarkdown()
 ├── history.ts        ← HistoryManager, HistoryStorage, InMemoryStorage
-└── rule-based.ts     ← ruleBasedEnhance() — :fast mode logic
+└── rule-based.ts     ← ruleBasedEnhance() — :rb mode logic
 ```
 
 ## Development

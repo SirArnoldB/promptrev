@@ -38,7 +38,7 @@ The central orchestrator. Takes a raw prompt + modifier + model adapter, returns
 ```typescript
 export interface EnhancerInput {
   rawPrompt: string;
-  modifier: ModifierKey;         // 'default' | 'fast' | 'deep' | 'architect' | 'critic' | 'spell' | 'spec' | string
+  modifier: ModifierKey;         // 'default' | 'rb' | 'deep' | 'architect' | 'critic' | 'spell' | 'spec' | string
   domainContext?: string;        // e.g. "React + TypeScript, Node.js"
   modelAdapter: ModelAdapter;    // abstraction over vscode.lm or Anthropic SDK
 }
@@ -66,12 +66,12 @@ export interface ModifierDefinition {
   systemPrompt: string;
   acceptMode: 'diff' | 'auto';
   autoSend: boolean;
-  useLLM: boolean;               // false = rule-based only (fast mode)
+  useLLM: boolean;               // false = rule-based only (rb mode)
 }
 
 export const BUILT_IN_MODIFIERS: Record<string, ModifierDefinition> = {
   default: { ... },
-  fast: { useLLM: false, acceptMode: 'auto', autoSend: true, ... },
+  rb: { useLLM: false, acceptMode: 'auto', autoSend: true, ... },
   deep: { useLLM: true, acceptMode: 'diff', autoSend: false, ... },
   architect: { ... },
   critic: { ... },
@@ -144,7 +144,7 @@ export class HistoryManager {
 ```
 
 #### `rule-based.ts`
-Local rule-based enhancement for `:fast` (no LLM).
+Local rule-based enhancement for `:rb` (no LLM).
 
 ```typescript
 // Rules applied in order:
@@ -290,7 +290,7 @@ export class HistoryPanel implements vscode.WebviewViewProvider {
       "description": "Enhance your prompt before sending it to the AI",
       "isSticky": false,
       "commands": [
-        { "name": "fast",      "description": "Quick sharpen — auto-accept, rule-based" },
+        { "name": "rb",      "description": "Quick sharpen — auto-accept, rule-based" },
         { "name": "deep",      "description": "Exhaustive — chain-of-thought, edge cases" },
         { "name": "architect", "description": "System design framing" },
         { "name": "critic",    "description": "Adversarial review framing" },
@@ -368,7 +368,7 @@ rev "fix the race condition in my queue worker"
 rev --mod deep "design a job queue system"
 
 # Pipe
-echo "fix null check" | rev --mod fast
+echo "fix null check" | rev --mod rb
 
 # From file
 rev --file prompt.txt --mod architect
@@ -611,7 +611,7 @@ Return ONLY the rewritten prompt.
 
 **Core tests to write first:**
 - `enhancer.test.ts` — given raw prompt + modifier, returns enhanced output
-- `rule-based.test.ts` — rule-based cleanup for `:fast` mode
+- `rule-based.test.ts` — rule-based cleanup for `:rb` mode
 - `modifiers.test.ts` — modifier resolution (built-in + user-defined)
 - `diff.test.ts` — diff chunks are accurate
 
@@ -681,6 +681,6 @@ pnpm -r build
 | CLI bundler | tsup | Outputs CJS + ESM, DTS, minimal config |
 | LLM for VS Code | `vscode.lm` first | Zero setup for user, reuses existing model |
 | LLM for CLI | Anthropic SDK | Direct, reliable, Haiku is fast and cheap |
-| `:fast` mode | Rule-based (no LLM) | True zero latency — the whole promise of :fast |
+| `:rb` mode | Rule-based (no LLM) | True no model required — the whole promise of :rb |
 | Diff display | In-chat markdown | No custom UI injection needed, works natively |
 | History storage | VS Code `globalState` | Built-in, no extra dependencies, survives restarts |
