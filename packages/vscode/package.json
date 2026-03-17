@@ -2,7 +2,7 @@
   "name": "promptrev",
   "displayName": "PromptRev",
   "description": "Instantly enhance your AI prompts with @rev",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "publisher": "promptrev",
   "repository": {
     "type": "git",
@@ -18,9 +18,20 @@
     "color": "#4F46E5",
     "theme": "dark"
   },
-  "categories": ["AI", "Other"],
-  "keywords": ["prompt", "ai", "copilot", "enhancement", "chat"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "prompt",
+    "ai",
+    "copilot",
+    "enhancement",
+    "chat"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "chatParticipants": [
@@ -142,7 +153,11 @@
       "properties": {
         "promptrev.acceptMode": {
           "type": "string",
-          "enum": ["diff", "auto", "preview"],
+          "enum": [
+            "diff",
+            "auto",
+            "preview"
+          ],
           "enumDescriptions": [
             "Show a diff preview before accepting",
             "Auto-accept the enhanced prompt",

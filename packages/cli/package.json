@@ -1,8 +1,15 @@
 {
   "name": "promptrev",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Enhance your AI prompts from the terminal",
-  "keywords": ["prompt", "ai", "cli", "enhancement", "anthropic", "claude"],
+  "keywords": [
+    "prompt",
+    "ai",
+    "cli",
+    "enhancement",
+    "anthropic",
+    "claude"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,7 +29,9 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "watch": "tsup --watch",
