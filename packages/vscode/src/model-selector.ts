@@ -21,7 +21,7 @@ export async function selectModel(): Promise<vscode.LanguageModelChat | null> {
  * Returns true if the caller should abort (no model + modifier needs LLM).
  */
 export async function handleNoModel(modifier: string): Promise<boolean> {
-  if (modifier === 'fast') return false; // fast is rule-based, no model needed
+  if (modifier === 'rb') return false; // rb is rule-based, no model needed
 
   const action = await vscode.window.showWarningMessage(
     'PromptRev: No language model available. Activate GitHub Copilot or configure an API key.',

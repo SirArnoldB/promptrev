@@ -11,7 +11,6 @@ import { VSCodeModelAdapter } from './vscode-model-adapter';
 import { selectModel } from './model-selector';
 import { addPendingResult } from './commands';
 import { getHistoryManager } from './history-manager';
-import { formatDiffMarkdown } from '@promptrev/core';
 import type { HistoryPanelProvider } from './history-panel';
 import type { ProjectConfigProvider, MergedTemplate } from './project-config';
 
@@ -402,10 +401,7 @@ function renderTemplateResult(
     : `✨ **${templateName}** template filled and enhanced:`;
 
   stream.markdown(`${header}\n\n`);
-  stream.markdown(`\`\`\`\n${result.revised}\n\`\`\``);
-  stream.markdown('\n\n**Changes:**\n\n');
-  stream.markdown(formatDiffMarkdown(result.original, result.revised));
-  stream.markdown('\n\n');
+  stream.markdown(`\`\`\`\n${result.revised}\n\`\`\`\n\n`);
 
   stream.button({
     command: 'promptrev.accept',

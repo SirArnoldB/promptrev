@@ -17,7 +17,7 @@ describe('HistoryManager', () => {
 
   it('entries are returned newest-first', () => {
     manager.add({ original: 'first', revised: 'First.', modifier: 'default', accepted: true });
-    manager.add({ original: 'second', revised: 'Second.', modifier: 'fast', accepted: true });
+    manager.add({ original: 'second', revised: 'Second.', modifier: 'rb', accepted: true });
     const entries = manager.getAll();
     expect(entries[0].original).toBe('second');
     expect(entries[1].original).toBe('first');

@@ -9,8 +9,8 @@ describe('resolveModifier', () => {
     expect(mod.acceptMode).toBe('diff');
   });
 
-  it('fast modifier is rule-based (useLLM: false)', () => {
-    const mod = resolveModifier('fast');
+  it('rb modifier is rule-based (useLLM: false)', () => {
+    const mod = resolveModifier('rb');
     expect(mod.useLLM).toBe(false);
     expect(mod.autoSend).toBe(true);
     expect(mod.acceptMode).toBe('auto');

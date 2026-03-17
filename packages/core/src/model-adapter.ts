@@ -12,7 +12,7 @@ export interface ModelAdapter {
 
 /**
  * Rule-based fallback adapter — no LLM call.
- * Used by :fast mode and when no model is available.
+ * Used by :rb mode and when no model is available.
  */
 export class RuleBasedAdapter implements ModelAdapter {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

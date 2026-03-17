@@ -11,7 +11,7 @@ program
   .description('Enhance your AI prompts before sending them')
   .version('0.1.0')
   .argument('[prompt]', 'Prompt text to enhance (or pipe via stdin)')
-  .option('-m, --mod <modifier>', 'Modifier to apply (default, fast, deep, architect, critic, spell, spec)', 'default')
+  .option('-m, --mod <modifier>', 'Modifier to apply (default, rb, deep, architect, critic, spell, spec)', 'default')
   .option('-f, --file <path>', 'Read prompt from a file')
   .option('--json', 'Output full result as JSON')
   .option('--model <model>', 'Override the model (e.g. claude-opus-4-6)')
@@ -32,7 +32,7 @@ program
     }
 
     const modifier = options.mod as string;
-    const isFast = modifier === 'fast';
+    const isFast = modifier === 'rb';
 
     // :fast uses rule-based adapter — no API key required
     let adapter;
@@ -44,7 +44,7 @@ program
         console.error(
           'Error: No API key found.\n' +
             'Set PROMPTREV_API_KEY or ANTHROPIC_API_KEY environment variable.\n' +
-            'Or use --mod fast for rule-based enhancement with no API key.'
+            'Or use --mod rb for rule-based enhancement with no API key.'
         );
         process.exit(1);
       }

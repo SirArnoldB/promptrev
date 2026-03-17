@@ -32,11 +32,11 @@ describe('enhance', () => {
     expect(result.skipped).toBe(false);
   });
 
-  it('does NOT call modelAdapter for :fast modifier', async () => {
+  it('does NOT call modelAdapter for :rb modifier', async () => {
     const adapter = makeMockAdapter('Should not be called');
     const result = await enhance({
       rawPrompt: 'fix the bug in my app',
-      modifier: 'fast',
+      modifier: 'rb',
       modelAdapter: adapter,
     });
     expect(adapter.complete).not.toHaveBeenCalled();
