@@ -11,6 +11,8 @@ export interface EnhancerInput {
   modelAdapter: ModelAdapter;
   userModifiers?: Record<string, Partial<ModifierDefinition>>;
   signal?: AbortSignal;
+  /** Metadata or structural summary of attached file/folder/selection references */
+  referenceContext?: string;
 }
 
 export interface EnhancerOutput {
@@ -61,11 +63,38 @@ function interpolateSystemPrompt(systemPrompt: string, domainContext?: string): 
 }
 
 /**
+ * Appends reference context and preservation instructions to the system prompt.
+ */
+function appendReferenceContext(systemPrompt: string, referenceContext?: string): string {
+  if (!referenceContext) return systemPrompt;
+
+  return (
+    systemPrompt +
+    '\n\n' +
+    'The user has attached the following context to their prompt:\n' +
+    referenceContext +
+    '\n\n' +
+    'Preserve all file references in the rewritten prompt. If the original prompt contains ' +
+    'file references like #file:filename.ts, #selection, or similar markers, preserve them ' +
+    'exactly as-is in your rewritten prompt. These are VS Code context markers that attach ' +
+    'file content — do not remove, rename, or rephrase them.'
+  );
+}
+
+/**
  * Main enhancement entry point.
  * Takes a raw prompt and returns an enhanced version using the specified modifier.
  */
 export async function enhance(input: EnhancerInput): Promise<EnhancerOutput> {
-  const { rawPrompt, modifier, domainContext, modelAdapter, userModifiers, signal } = input;
+  const {
+    rawPrompt,
+    modifier,
+    domainContext,
+    modelAdapter,
+    userModifiers,
+    signal,
+    referenceContext,
+  } = input;
   const timestamp = Date.now();
 
   // Skip enhancement for very short prompts
@@ -89,7 +118,8 @@ export async function enhance(input: EnhancerInput): Promise<EnhancerOutput> {
     // :rb mode — rule-based only, no LLM call
     revised = ruleBasedEnhance(rawPrompt);
   } else {
-    const systemPrompt = interpolateSystemPrompt(modifierDef.systemPrompt, domainContext);
+    const baseSystemPrompt = interpolateSystemPrompt(modifierDef.systemPrompt, domainContext);
+    const systemPrompt = appendReferenceContext(baseSystemPrompt, referenceContext);
 
     try {
       const raw = await modelAdapter.complete(systemPrompt, rawPrompt, signal);

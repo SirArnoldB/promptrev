@@ -27,5 +27,11 @@
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
   },
+  "pnpm": {
+    "overrides": {
+      "flatted": ">=3.4.2",
+      "picomatch": ">=4.0.4"
+    }
+  },
   "packageManager": "pnpm@9.0.0"
 }

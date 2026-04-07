@@ -202,6 +202,19 @@
           "type": "object",
           "default": {},
           "description": "Custom template definitions. Each key is a template identifier; each value is a PromptTemplate object with name, description, template string, and variables array."
+        },
+        "promptrev.referenceMode": {
+          "type": "string",
+          "enum": [
+            "passthrough",
+            "contextAware"
+          ],
+          "enumDescriptions": [
+            "Capture and forward references without reading file contents (zero overhead)",
+            "Read file structure summaries within a token budget for deeper context"
+          ],
+          "default": "passthrough",
+          "description": "How PromptRev handles attached file/folder/selection references during enhancement"
         }
       }
     },

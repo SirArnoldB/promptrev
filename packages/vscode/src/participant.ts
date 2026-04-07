@@ -7,6 +7,13 @@ import { selectModel, handleNoModel } from './model-selector';
 import { addPendingResult } from './commands';
 import { getHistoryManager } from './history-manager';
 import { runTemplateFlow } from './template-picker';
+import {
+  extractReferences,
+  buildPassthroughContext,
+  emitReferences,
+  resolveReferenceMode,
+} from './references';
+import type { ParsedReferences } from './references';
 import type { HistoryPanelProvider } from './history-panel';
 import type { ProjectConfigProvider } from './project-config';
 
@@ -18,8 +25,9 @@ export function registerParticipant(
   historyPanel: HistoryPanelProvider,
   projectConfig: ProjectConfigProvider
 ): void {
-  const participant = vscode.chat.createChatParticipant('promptrev.rev', (req, ctx, stream, token) =>
-    handler(req, ctx, stream, token, historyPanel, projectConfig)
+  const participant = vscode.chat.createChatParticipant(
+    'promptrev.rev',
+    (req, ctx, stream, token) => handler(req, ctx, stream, token, historyPanel, projectConfig)
   );
   participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icons', 'rev.png');
   context.subscriptions.push(participant);
@@ -67,7 +75,11 @@ async function handler(
   const userModifiers = projectConfig.getMergedModifiers();
 
   // Notify once per session if an unknown modifier key was typed (#23)
-  if (modifier !== 'default' && !projectConfig.isKnownModifier(modifier) && !_notifiedUnknownModifiers.has(modifier)) {
+  if (
+    modifier !== 'default' &&
+    !projectConfig.isKnownModifier(modifier) &&
+    !_notifiedUnknownModifiers.has(modifier)
+  ) {
     _notifiedUnknownModifiers.add(modifier);
     vscode.window.showInformationMessage(
       `PromptRev: Unknown modifier "${modifier}" — falling back to default. Define it in .promptrev.json or settings.json to use it.`
@@ -87,6 +99,18 @@ async function handler(
 
   const adapter = model ? new VSCodeModelAdapter(model, token) : new RuleBasedAdapter();
 
+  // ── Extract and classify attached references (#file:, #selection, etc.) ────
+  const refs = await extractReferences(request);
+  const resolvedMode = resolveReferenceMode(modifier);
+
+  let referenceContext: string | undefined;
+  if (refs.all.length > 0) {
+    if (resolvedMode === 'passthrough') {
+      referenceContext = buildPassthroughContext(refs);
+    }
+    // contextAware mode will be wired in Phase 2
+  }
+
   // Wire VS Code cancellation token to AbortSignal (#12)
   const controller = new AbortController();
   const cancelListener = token.onCancellationRequested(() => controller.abort());
@@ -101,6 +125,7 @@ async function handler(
       modelAdapter: adapter,
       userModifiers,
       signal: controller.signal,
+      referenceContext,
     });
 
     if (result.skipped) {
@@ -123,13 +148,14 @@ async function handler(
     // :rb and any modifier with acceptMode:'auto' — skip diff, show result directly (#13)
     if (modifierDef.acceptMode === 'auto') {
       stream.markdown(`**Enhanced prompt:**\n\n\`\`\`\n${result.revised}\n\`\`\``);
-      addPendingResult(result);
+      addPendingResult(result, refs);
+      emitReferences(stream, refs);
       await vscode.commands.executeCommand('promptrev.accept', result.timestamp);
       return;
     }
 
     // Standard diff flow — show original vs revised, then action buttons (#13)
-    renderResult(stream, result);
+    renderResult(stream, result, refs);
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') return;
     stream.markdown(
@@ -142,10 +168,16 @@ async function handler(
 
 function renderResult(
   stream: vscode.ChatResponseStream,
-  result: EnhancerOutput
+  result: EnhancerOutput,
+  refs?: ParsedReferences
 ): void {
   // Register result by timestamp — consumed on first button click
-  addPendingResult(result);
+  addPendingResult(result, refs);
+
+  // Re-emit original references so they appear as clickable links in the response
+  if (refs) {
+    emitReferences(stream, refs);
+  }
 
   // Lead with signal if available, then revised prompt
   const signalLine = result.signal
